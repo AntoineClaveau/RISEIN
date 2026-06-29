@@ -2,8 +2,8 @@ streamlit==1.45.0
 geopandas==1.0.1
 plotly==5.22.0
 osmnx==2.0.1
-rasterio==1.4.3
-numpy==2.1.0
+rasterio
+numpy
 pandas==2.2.2
 requests==2.32.3
 gdown==5.2.0
