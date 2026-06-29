@@ -2,12 +2,12 @@ streamlit
 geopandas
 plotly
 osmnx
-pandas
 rasterio
 numpy
-matplotlib
+pandas
+requests
+gdown
 shapely
 pyproj
-Fiona
-gdown
-geopy==2.3.0
+fiona
+matplotlib
