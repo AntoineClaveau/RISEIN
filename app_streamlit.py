@@ -36,11 +36,6 @@ ox.settings.nominatim_endpoint = "https://nominatim.openstreetmap.org/"
 
 # -----------------------------------------
 # 1. Contour administratif de Cesena via OSM
-# -----------------------------------------
-tags_boundary = {"boundary": "administrative"}
-
-from geopy.geocoders import Nominatim
-from geopy.exc import GeocoderTimedOut, GeocoderUnavailable
 
 ##Barentin
 
