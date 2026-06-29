@@ -1,0 +1,13 @@
+streamlit
+geopandas
+plotly
+osmnx
+pandas
+rasterio
+numpy
+matplotlib
+shapely
+pyproj
+Fiona
+gdown
+geopy==2.3.0
