@@ -1,0 +1,5 @@
+__pycache__/
+*.pyc
+.env
+donnees_pluie/
+donnees_pluie.zip
