@@ -254,7 +254,6 @@ def compute_rain_mean(geom_wkt: str, tif_paths: list):
 def gdf_to_choroplethmapbox(gdf, color, name, opacity=0.5, line_color="black", lw=0.5):
     if gdf is None or gdf.empty:
         return go.Scattermapbox(lat=[], lon=[], mode="markers", name=name, showlegend=True)
-    """Helper: uniform polygon trace."""
     gdf = gdf.copy().reset_index(drop=True)
     gdf["_id"] = gdf.index.astype(str)
     geojson = json.loads(gdf.to_json())
