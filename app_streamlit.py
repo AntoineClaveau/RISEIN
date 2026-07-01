@@ -382,12 +382,17 @@ if run_analysis:
                     st.warning(f"⚠️ OSM fetch failed for {name}: {exc}")
                     osm_results[name] = gpd.GeoDataFrame()
 
-    buildings_raw       = osm_results["buildings"]
-    routes_raw          = osm_results["roads"]
-    green_raw           = osm_results["green"]
-    stades_raw          = osm_results["stades"]
-    zones_industrielles = osm_results["industrial"]
-    zones_urbaines      = osm_results["residential"]
+    buildings_raw       = osm_results.get("buildings", gpd.GeoDataFrame())
+    routes_raw          = osm_results.get("roads", gpd.GeoDataFrame())
+    green_raw           = osm_results.get("green", gpd.GeoDataFrame())
+    stades_raw          = osm_results.get("stades", gpd.GeoDataFrame())
+    zones_industrielles = osm_results.get("industrial", gpd.GeoDataFrame())
+    zones_urbaines      = osm_results.get("residential", gpd.GeoDataFrame())
+
+    # Vérification critique : si les données essentielles sont vides, c'est un pb réseau
+    if buildings_raw.empty or routes_raw.empty:
+        st.error("❌ Cannot reach the OpenStreetMap server (Overpass API). Please try again in a few minutes.")
+        st.stop()
 
     # Reprojections
     buildings_m = buildings_raw.to_crs(epsg=3857)
