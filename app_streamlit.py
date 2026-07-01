@@ -215,6 +215,12 @@ def boundary_to_polylines(gdf: gpd.GeoDataFrame):
 def fetch_osm_features(geom_wkt: str, tags: dict, geom_types: list):
     from shapely import wkt as shapely_wkt
     geom = shapely_wkt.loads(geom_wkt)
+    # Pour les grandes zones (>500 km²), utiliser la bbox plutôt que le polygone exact
+    area_km2 = gpd.GeoDataFrame(geometry=[geom], crs="EPSG:4326").to_crs(epsg=3857).geometry.area.iloc[0] / 1e6
+    if area_km2 > 500:
+        from shapely.geometry import box as sbox
+        bounds = geom.bounds  # (minx, miny, maxx, maxy)
+        geom = sbox(*bounds)
     gdf = ox.features_from_polygon(geom, tags)
     gdf = gdf[gdf.geometry.type.isin(geom_types)].copy().reset_index(drop=True)
     return gdf
@@ -404,7 +410,8 @@ if run_analysis:
 
     routes_proj = routes_raw.to_crs(epsg=3857)
 
-    if "leisure" in green_raw.columns and not green_raw.empty:
+    # Green
+    if not green_raw.empty and "leisure" in green_raw.columns:
         parks = green_raw[green_raw["leisure"].isin(["park", "garden"])]
         pitches = green_raw[
             (green_raw["leisure"] == "pitch") &
@@ -412,17 +419,27 @@ if run_analysis:
         ] if "surface" in green_raw.columns else green_raw.iloc[0:0]
         green_filtered = pd.concat([parks, pitches]).reset_index(drop=True)
     else:
-        green_filtered = green_raw
+        green_filtered = gpd.GeoDataFrame(geometry=gpd.GeoSeries([], crs="EPSG:4326"))
 
-    green_m = green_filtered.to_crs(epsg=3857)
-    green_m["surface_m2"] = green_m.geometry.area
-    green_m["besoin_m3_an"] = green_m["surface_m2"] * 2.6 / 1000
-    gdf_polys = green_m.to_crs(epsg=4326).reset_index(drop=True)
+    if not green_filtered.empty:
+        green_m = green_filtered.to_crs(epsg=3857)
+        green_m["surface_m2"] = green_m.geometry.area
+        green_m["besoin_m3_an"] = green_m["surface_m2"] * 2.6 / 1000
+        gdf_polys = green_m.to_crs(epsg=4326).reset_index(drop=True)
+    else:
+        gdf_polys = gpd.GeoDataFrame(geometry=gpd.GeoSeries([], crs="EPSG:4326"))
+        gdf_polys["surface_m2"] = pd.Series(dtype=float)
+        gdf_polys["besoin_m3_an"] = pd.Series(dtype=float)
 
-    stades_m = stades_raw.to_crs(epsg=3857)
-    stades_m["surface_m2"] = stades_m.geometry.area
-    stades_m["besoin_m3_an"] = stades_m["surface_m2"] * 0.57
-    stades_herbe = stades_m.to_crs(epsg=4326).reset_index(drop=True)
+    if not stades_raw.empty:
+        stades_m = stades_raw.to_crs(epsg=3857)
+        stades_m["surface_m2"] = stades_m.geometry.area
+        stades_m["besoin_m3_an"] = stades_m["surface_m2"] * 0.57
+        stades_herbe = stades_m.to_crs(epsg=4326).reset_index(drop=True)
+    else:
+        stades_herbe = gpd.GeoDataFrame(geometry=gpd.GeoSeries([], crs="EPSG:4326"))
+        stades_herbe["surface_m2"] = pd.Series(dtype=float)
+        stades_herbe["besoin_m3_an"] = pd.Series(dtype=float)
 
     # ── GRILLE 500m ────────────────────────────
     with st.spinner("🔲 Building grid and road surfaces…"):
