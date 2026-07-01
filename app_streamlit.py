@@ -217,8 +217,9 @@ def fetch_osm_features(geom_wkt: str, tags: dict, geom_types: list):
         gdf = ox.features_from_polygon(geom, tags)
         gdf = gdf[gdf.geometry.type.isin(geom_types)].copy().reset_index(drop=True)
         return gdf
-    except Exception:
-        st.warning(f"⚠️ OSM fetch failed for tags {tags}: {e}")
+    except Exception as exc:
+        import traceback
+        print(f"OSM error for tags {tags}: {traceback.format_exc()}")
         return gpd.GeoDataFrame()
 
 
