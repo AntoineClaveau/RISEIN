@@ -323,7 +323,13 @@ with col1:
 with col2:
     wikidata_id = st.text_input("Wikidata ID", value="Q578638")
 
-run_analysis = st.button("▶ Start analysis", type="primary")
+col1, col2 = st.columns([3, 1])
+with col1:
+    run_analysis = st.button("▶ Start analysis", type="primary")
+with col2:
+    if st.button("🔄 Clear cache"):
+        st.cache_data.clear()
+        st.rerun()
 
 # ─────────────────────────────────────────────
 # ANALYSE
