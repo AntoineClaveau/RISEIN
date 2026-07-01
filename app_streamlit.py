@@ -214,16 +214,46 @@ def boundary_to_polylines(gdf: gpd.GeoDataFrame):
 @st.cache_data(show_spinner=False)
 def fetch_osm_features(geom_wkt: str, tags: dict, geom_types: list):
     from shapely import wkt as shapely_wkt
+    from shapely.geometry import box as sbox
     geom = shapely_wkt.loads(geom_wkt)
-    # Pour les grandes zones (>500 km²), utiliser la bbox plutôt que le polygone exact
+    
     area_km2 = gpd.GeoDataFrame(geometry=[geom], crs="EPSG:4326").to_crs(epsg=3857).geometry.area.iloc[0] / 1e6
+    
     if area_km2 > 500:
-        from shapely.geometry import box as sbox
-        bounds = geom.bounds  # (minx, miny, maxx, maxy)
-        geom = sbox(*bounds)
-    gdf = ox.features_from_polygon(geom, tags)
-    gdf = gdf[gdf.geometry.type.isin(geom_types)].copy().reset_index(drop=True)
-    return gdf
+        # Découper en tuiles de ~100km x 100km
+        bounds = geom.bounds  # minx, miny, maxx, maxy
+        minx, miny, maxx, maxy = bounds
+        step = 1.0  # ~100km en degrés
+        tiles = []
+        x = minx
+        while x < maxx:
+            y = miny
+            while y < maxy:
+                tile = sbox(x, y, min(x+step, maxx), min(y+step, maxy))
+                tile_geom = tile.intersection(geom)
+                if not tile_geom.is_empty:
+                    tiles.append(tile_geom)
+                y += step
+            x += step
+        
+        gdfs = []
+        for tile in tiles:
+            try:
+                gdf_tile = ox.features_from_polygon(tile, tags)
+                gdf_tile = gdf_tile[gdf_tile.geometry.type.isin(geom_types)]
+                gdfs.append(gdf_tile)
+            except Exception:
+                continue
+        
+        if not gdfs:
+            return gpd.GeoDataFrame()
+        gdf = pd.concat(gdfs).drop_duplicates().reset_index(drop=True)
+        return gdf
+    
+    else:
+        gdf = ox.features_from_polygon(geom, tags)
+        gdf = gdf[gdf.geometry.type.isin(geom_types)].copy().reset_index(drop=True)
+        return gdf
 
 
 @st.cache_data(show_spinner=False)
