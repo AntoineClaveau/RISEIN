@@ -367,20 +367,14 @@ if run_analysis:
         "residential": ({"landuse": "residential"},               ["Polygon", "MultiPolygon"]),
     }
 
-    with st.spinner("🗺️ Fetching OSM features in parallel…"):
+    with st.spinner("🗺️ Fetching OSM features…"):
         osm_results = {}
-        with ThreadPoolExecutor(max_workers=6) as executor:
-            futures = {
-                executor.submit(fetch_osm_features, zone_geom_wkt, tags, geom_types): name
-                for name, (tags, geom_types) in osm_queries.items()
-            }
-            for future in as_completed(futures):
-                name = futures[future]
-                try:
-                    osm_results[name] = future.result()
-                except Exception as exc:
-                    st.warning(f"⚠️ OSM fetch failed for {name}: {exc}")
-                    osm_results[name] = gpd.GeoDataFrame()
+        for name, (tags, geom_types) in osm_queries.items():
+            try:
+                osm_results[name] = fetch_osm_features(zone_geom_wkt, tags, geom_types)
+            except Exception as exc:
+                st.warning(f"⚠️ Failed to fetch {name}: {exc}")
+                osm_results[name] = gpd.GeoDataFrame()
 
     buildings_raw       = osm_results.get("buildings", gpd.GeoDataFrame())
     routes_raw          = osm_results.get("roads", gpd.GeoDataFrame())
