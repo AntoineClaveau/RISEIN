@@ -214,14 +214,9 @@ def boundary_to_polylines(gdf: gpd.GeoDataFrame):
 def fetch_osm_features(geom_wkt: str, tags: dict, geom_types: list):
     from shapely import wkt as shapely_wkt
     geom = shapely_wkt.loads(geom_wkt)
-    try:
-        gdf = ox.features_from_polygon(geom, tags)
-        gdf = gdf[gdf.geometry.type.isin(geom_types)].copy().reset_index(drop=True)
-        return gdf
-    except Exception as exc:
-        import traceback
-        print(f"OSM error for tags {tags}: {traceback.format_exc()}")
-        return gpd.GeoDataFrame()
+    gdf = ox.features_from_polygon(geom, tags)
+    gdf = gdf[gdf.geometry.type.isin(geom_types)].copy().reset_index(drop=True)
+    return gdf
 
 
 @st.cache_data(show_spinner=False)
@@ -323,10 +318,10 @@ with col1:
 with col2:
     wikidata_id = st.text_input("Wikidata ID", value="Q578638")
 
-col1, col2 = st.columns([3, 1])
-with col1:
+col_a, col_b = st.columns([3, 1])
+with col_a:
     run_analysis = st.button("▶ Start analysis", type="primary")
-with col2:
+with col_b:
     if st.button("🔄 Clear cache"):
         st.cache_data.clear()
         st.rerun()
@@ -335,6 +330,13 @@ with col2:
 # ANALYSE
 # ─────────────────────────────────────────────
 if run_analysis:
+    try:
+        test = requests.get("https://overpass.kumi.systems/api/interpreter", timeout=10)
+        st.info(f"Overpass reachable: {test.status_code}")
+    except Exception as e:
+        st.error(f"Overpass NOT reachable: {e}")
+        st.stop()
+        
     st.session_state.pop("results", None)   # reset
 
     with st.spinner("🔍 Fetching zone boundary from OSM…"):
