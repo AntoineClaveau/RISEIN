@@ -29,6 +29,7 @@ from shapely.geometry import MultiLineString
 ox.settings.default_user_agent = "RISE-IN App - aclaveau@seitiss.com"
 ox.settings.nominatim_delay = 1
 ox.settings.nominatim_endpoint = "https://nominatim.openstreetmap.org/"
+ox.settings.overpass_url = "https://overpass.kumi.systems/api/interpreter"
 
 st.set_page_config(page_title="RISE-IN - Analyse Eau de Pluie", layout="wide")
 
@@ -121,9 +122,9 @@ out geom;"""
     }
 
     mirrors = [
-        "https://overpass-api.de/api/interpreter",
         "https://overpass.kumi.systems/api/interpreter",
         "https://maps.mail.ru/osm/tools/overpass/api/interpreter",
+        "https://overpass-api.de/api/interpreter",
     ]
 
     data = None
