@@ -376,8 +376,8 @@ if run_analysis:
                 name = futures[future]
                 try:
                     osm_results[name] = future.result()
-                except Exception as e:
-                    st.warning(f"⚠️ Failed to fetch {name}: {e}")
+                except Exception as exc:
+                    st.warning(f"⚠️ OSM fetch failed for {name}: {exc}")
                     osm_results[name] = gpd.GeoDataFrame()
 
     buildings_raw       = osm_results["buildings"]
