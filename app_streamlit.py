@@ -29,7 +29,7 @@ from shapely.geometry import MultiLineString
 ox.settings.default_user_agent = "RISE-IN App - aclaveau@seitiss.com"
 ox.settings.nominatim_delay = 1
 ox.settings.nominatim_endpoint = "https://nominatim.openstreetmap.org/"
-ox.settings.overpass_url = "https://overpass-api.de/api/interpreter"
+ox.settings.overpass_url = "https://overpass-api.de/api"
 ox.settings.timeout = 60
 
 st.set_page_config(page_title="RISE-IN - Analyse Eau de Pluie", layout="wide")
